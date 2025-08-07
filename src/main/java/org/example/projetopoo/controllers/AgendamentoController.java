@@ -1,9 +1,13 @@
 package org.example.projetopoo.controllers;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.stage.Stage;
 import org.example.projetopoo.data.DataService;
 import org.example.projetopoo.model.Agendamento;
@@ -11,104 +15,103 @@ import org.example.projetopoo.model.Servico;
 import org.example.projetopoo.model.StatusAgendamento;
 import org.example.projetopoo.model.Usuario;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class AgendamentoController {
 
     private Usuario usuarioLogado;
-    private Servico servicoSelecionado;
-
-    @FXML
-    private Label servicoLabel;
-
-    @FXML
-    private DatePicker dataPicker;
-
-    @FXML
-    private ListView<LocalTime> horariosListView;
-
-    @FXML
-    private Button confirmarButton;
-
     private DataService dataService = new DataService();
-    private List<Agendamento> agendamentos;
 
-    public void initData(Usuario usuario, Servico servico) {
-        this.usuarioLogado = usuario;
-        this.servicoSelecionado = servico;
-        servicoLabel.setText("Agendando: " + servico.getNome());
+    @FXML
+    private DatePicker datePicker;
 
-        dataPicker.setValue(LocalDate.now());
+    @FXML
+    private ComboBox<String> timeComboBox;
 
-        dataPicker.valueProperty().addListener((observable, oldValue, newValue) -> loadAvailableHours(newValue));
+    @FXML
+    private ComboBox<String> servicoComboBox;
 
-        // Carrega os agendamentos do arquivo
-        this.agendamentos = dataService.loadAgendamentos(dataService.loadUsuarios(), loadServicos());
+    @FXML
+    private Button scheduleButton;
 
-        loadAvailableHours(LocalDate.now());
-
-        confirmarButton.setDisable(true);
-        horariosListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            confirmarButton.setDisable(newVal == null);
-        });
-    }
-
-    private List<Servico> loadServicos() {
-        // Simulação dos serviços disponíveis
-        List<Servico> servicos = new ArrayList<>();
-        servicos.add(new Servico(1, "Instalação de Ar-Condicionado", "Instalação profissional para todos os tipos de aparelhos.", 350.00));
-        servicos.add(new Servico(2, "Manutenção Preventiva", "Limpeza e verificação completa para o bom funcionamento do seu equipamento.", 150.00));
-        servicos.add(new Servico(3, "Conserto de Vazamentos", "Identificação e reparo de vazamentos em sistemas de refrigeração.", 200.00));
-        return servicos;
-    }
-
-    private void loadAvailableHours(LocalDate date) {
-        List<LocalTime> availableHours = new ArrayList<>();
-        if (date.isAfter(LocalDate.now().minusDays(1))) {
-            availableHours.add(LocalTime.of(9, 0));
-            availableHours.add(LocalTime.of(10, 30));
-            availableHours.add(LocalTime.of(14, 0));
+    @FXML
+    public void initialize() {
+        // Preenche o ComboBox de horários
+        for (int hour = 8; hour <= 17; hour++) {
+            timeComboBox.getItems().add(String.format("%02d:00", hour));
         }
 
-        // Simulação de horários ocupados. Em um projeto real, você filtraria os horários
-        // que já estão na lista de agendamentos para a data selecionada.
+        // Carrega os serviços do arquivo e preenche o ComboBox de serviços
+        List<Servico> servicos = dataService.loadServicos();
+        for (Servico servico : servicos) {
+            servicoComboBox.getItems().add(servico.getNome());
+        }
+    }
 
-        ObservableList<LocalTime> horarios = FXCollections.observableArrayList(availableHours);
-        horariosListView.setItems(horarios);
+    public void setUsuarioLogado(Usuario usuario) {
+        this.usuarioLogado = usuario;
     }
 
     @FXML
-    public void handleConfirmarButtonAction() {
-        LocalTime horarioSelecionado = horariosListView.getSelectionModel().getSelectedItem();
-        if (horarioSelecionado != null) {
-            LocalDateTime dataHoraAgendamento = LocalDateTime.of(dataPicker.getValue(), horarioSelecionado);
+    private void handleScheduleButtonAction() {
+        String selectedServicoNome = servicoComboBox.getValue();
+        LocalDate selectedDate = datePicker.getValue();
+        String selectedTimeStr = timeComboBox.getValue();
 
-            Agendamento novoAgendamento = new Agendamento(
-                    (int) (Math.random() * 1000),
-                    usuarioLogado,
-                    servicoSelecionado,
-                    dataHoraAgendamento,
-                    StatusAgendamento.PENDENTE
-            );
+        if (selectedServicoNome == null || selectedDate == null || selectedTimeStr == null) {
+            new Alert(Alert.AlertType.ERROR, "Por favor, preencha todos os campos.").showAndWait();
+            return;
+        }
 
-            // Adiciona o novo agendamento à lista
+        LocalTime selectedTime = LocalTime.parse(selectedTimeStr);
+        LocalDateTime agendamentoDateTime = LocalDateTime.of(selectedDate, selectedTime);
+
+        List<Servico> servicos = dataService.loadServicos();
+        Optional<Servico> servicoOptional = servicos.stream()
+                .filter(s -> s.getNome().equals(selectedServicoNome))
+                .findFirst();
+
+        if (servicoOptional.isPresent()) {
+            Servico servico = servicoOptional.get();
+
+            List<Usuario> usuarios = dataService.loadUsuarios();
+            List<Agendamento> agendamentos = dataService.loadAgendamentos(usuarios, servicos);
+
+            int newId = 1;
+            if (!agendamentos.isEmpty()) {
+                newId = agendamentos.get(agendamentos.size() - 1).getId() + 1;
+            }
+
+            Agendamento novoAgendamento = new Agendamento(newId, usuarioLogado, servico, agendamentoDateTime, StatusAgendamento.PENDENTE);
             agendamentos.add(novoAgendamento);
 
-            // Salva a lista atualizada de agendamentos no arquivo
             dataService.saveAgendamentos(agendamentos);
+            new Alert(Alert.AlertType.INFORMATION, "Agendamento realizado com sucesso!").showAndWait();
+            handleBackButtonAction();
+        }
+    }
 
-            System.out.println("Novo agendamento criado e salvo: " + novoAgendamento.getCliente().getNome());
-            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Seu agendamento foi solicitado com sucesso! Aguarde a confirmação do administrador.");
-            alert.showAndWait();
+    @FXML
+    private void handleBackButtonAction() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/projetopoo/clientDashboard-view.fxml"));
+            Parent root = loader.load();
 
-            // TODO: Voltar para a tela inicial do cliente
+            ClientDashboardController controller = loader.getController();
+            controller.setUsuarioLogado(usuarioLogado);
 
-        } else {
-            new Alert(Alert.AlertType.WARNING, "Por favor, selecione um horário.").showAndWait();
+            Stage stage = (Stage) scheduleButton.getScene().getWindow();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Painel do Cliente");
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

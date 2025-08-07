@@ -51,14 +51,15 @@ public class AdminDashboardController {
     private Button manageServicesButton;
 
     @FXML
+    private Button logoutButton;
+
+    @FXML
     public void initialize() {
-        // Vincula as colunas da tabela aos atributos da classe Agendamento
         clienteColumn.setCellValueFactory(new PropertyValueFactory<>("cliente"));
         servicoColumn.setCellValueFactory(new PropertyValueFactory<>("servico"));
         dataHoraColumn.setCellValueFactory(new PropertyValueFactory<>("dataHora"));
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
 
-        // Configuração da nova coluna de Ações
         actionColumn.setCellFactory(param -> new TableCell<Agendamento, Void>() {
             private final Button confirmButton = new Button("Confirmar");
             private final Button cancelButton = new Button("Cancelar");
@@ -103,7 +104,6 @@ public class AdminDashboardController {
     }
 
     private void loadAgendamentos() {
-        // Agora carrega os serviços de forma persistente
         List<Servico> servicosDisponiveis = dataService.loadServicos();
         List<Usuario> usuariosCadastrados = dataService.loadUsuarios();
         List<Agendamento> agendamentos = dataService.loadAgendamentos(usuariosCadastrados, servicosDisponiveis);
@@ -128,6 +128,22 @@ public class AdminDashboardController {
             Scene scene = new Scene(root);
             stage.setScene(scene);
             stage.setTitle("Gerenciar Serviços");
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void handleLogoutButton() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/projetopoo/login-view.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = (Stage) welcomeLabel.getScene().getWindow();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Login");
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();

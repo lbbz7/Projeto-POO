@@ -1,41 +1,29 @@
 package org.example.projetopoo.controllers;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.stage.Stage;
-import org.example.projetopoo.model.Servico;
+import org.example.projetopoo.data.DataService;
 import org.example.projetopoo.model.Usuario;
 import java.io.IOException;
 
 public class ClientDashboardController {
+
     private Usuario usuarioLogado;
+    private DataService dataService = new DataService();
 
     @FXML
     private Label welcomeLabel;
 
     @FXML
-    private ListView<Servico> servicosListView;
+    private Button changePasswordButton; // Novo botão
 
     @FXML
-    private Button agendarButton;
-
-    @FXML
-    public void initialize() {
-        loadServicos();
-
-        agendarButton.setDisable(true);
-        servicosListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            agendarButton.setDisable(newVal == null);
-        });
-    }
+    private Button logoutButton;
 
     public void setUsuarioLogado(Usuario usuario) {
         this.usuarioLogado = usuario;
@@ -44,52 +32,73 @@ public class ClientDashboardController {
         }
     }
 
-    private void loadServicos() {
-        ObservableList<Servico> servicos = FXCollections.observableArrayList(
-                new Servico(1, "Instalação de Ar-Condicionado", "Instalação profissional para todos os tipos de aparelhos.", 350.00),
-                new Servico(2, "Manutenção Preventiva", "Limpeza e verificação completa para o bom funcionamento do seu equipamento.", 150.00),
-                new Servico(3, "Conserto de Vazamentos", "Identificação e reparo de vazamentos em sistemas de refrigeração.", 200.00)
-        );
-        servicosListView.setItems(servicos);
-    }
-
     @FXML
-    public void handleAgendarButtonAction() {
-        Servico servicoSelecionado = servicosListView.getSelectionModel().getSelectedItem();
-        if (servicoSelecionado != null) {
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/projetopoo/views/agendamento-view.fxml"));
-                Parent root = loader.load();
+    public void handleScheduleButton() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/projetopoo/agendamento-view.fxml"));
+            Parent root = loader.load();
 
-                AgendamentoController agendamentoController = loader.getController();
-                agendamentoController.initData(usuarioLogado, servicoSelecionado);
+            AgendamentoController controller = loader.getController();
+            controller.setUsuarioLogado(usuarioLogado);
 
-                Stage stage = (Stage) agendarButton.getScene().getWindow();
-                Scene scene = new Scene(root);
-                stage.setScene(scene);
-                stage.setTitle("Agendar Serviço: " + servicoSelecionado.getNome());
-                stage.show();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            new Alert(Alert.AlertType.WARNING, "Por favor, selecione um serviço para agendar.").showAndWait();
+            Stage stage = (Stage) welcomeLabel.getScene().getWindow();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Novo Agendamento");
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     @FXML
-    public void handleMeusAgendamentosButtonAction() {
+    public void handleViewAppointmentsButton() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/projetopoo/views/clientAppointments-view.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/projetopoo/clientAppointments-view.fxml"));
             Parent root = loader.load();
 
             ClientAppointmentsController controller = loader.getController();
             controller.initData(usuarioLogado);
 
-            Stage stage = (Stage) agendarButton.getScene().getWindow();
+            Stage stage = (Stage) welcomeLabel.getScene().getWindow();
             Scene scene = new Scene(root);
             stage.setScene(scene);
             stage.setTitle("Meus Agendamentos");
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void handleChangePasswordButton() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/projetopoo/changePassword-view.fxml"));
+            Parent root = loader.load();
+
+            ChangePasswordController controller = loader.getController();
+            controller.setUsuarioLogado(usuarioLogado);
+
+            Stage stage = (Stage) welcomeLabel.getScene().getWindow();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Alterar Senha");
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void handleLogoutButton() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/projetopoo/login-view.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = (Stage) welcomeLabel.getScene().getWindow();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Login");
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
