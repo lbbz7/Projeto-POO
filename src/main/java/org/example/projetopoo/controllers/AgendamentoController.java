@@ -41,12 +41,10 @@ public class AgendamentoController {
 
     @FXML
     public void initialize() {
-        // Preenche o ComboBox de horários
         for (int hour = 8; hour <= 17; hour++) {
             timeComboBox.getItems().add(String.format("%02d:00", hour));
         }
 
-        // Carrega os serviços do arquivo e preenche o ComboBox de serviços
         List<Servico> servicos = dataService.loadServicos();
         for (Servico servico : servicos) {
             servicoComboBox.getItems().add(servico.getNome());

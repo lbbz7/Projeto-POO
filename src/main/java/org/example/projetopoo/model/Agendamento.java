@@ -1,15 +1,16 @@
 package org.example.projetopoo.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class Agendamento {
-
+public class Agendamento implements Serializable {
     private int id;
     private Usuario cliente;
     private Servico servico;
     private LocalDateTime dataHora;
     private StatusAgendamento status;
 
+    // Construtor
     public Agendamento(int id, Usuario cliente, Servico servico, LocalDateTime dataHora, StatusAgendamento status) {
         this.id = id;
         this.cliente = cliente;
@@ -57,5 +58,17 @@ public class Agendamento {
 
     public void setStatus(StatusAgendamento status) {
         this.status = status;
+    }
+
+    // Sobrescrita do toString para exibição
+    @Override
+    public String toString() {
+        return "Agendamento{" +
+                "id=" + id +
+                ", cliente=" + cliente.getEmail() +
+                ", servico=" + servico.getNome() +
+                ", dataHora=" + dataHora +
+                ", status=" + status +
+                '}';
     }
 }

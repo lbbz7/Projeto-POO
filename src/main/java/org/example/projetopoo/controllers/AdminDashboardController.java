@@ -55,8 +55,8 @@ public class AdminDashboardController {
 
     @FXML
     public void initialize() {
-        clienteColumn.setCellValueFactory(new PropertyValueFactory<>("cliente"));
-        servicoColumn.setCellValueFactory(new PropertyValueFactory<>("servico"));
+        clienteColumn.setCellValueFactory(cellData -> cellData.getValue().getCliente().nomeProperty());
+        servicoColumn.setCellValueFactory(cellData -> cellData.getValue().getServico().nomeProperty());
         dataHoraColumn.setCellValueFactory(new PropertyValueFactory<>("dataHora"));
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
 

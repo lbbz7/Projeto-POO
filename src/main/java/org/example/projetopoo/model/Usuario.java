@@ -1,12 +1,14 @@
 package org.example.projetopoo.model;
 
-public class Usuario {
+import java.io.Serializable;
 
+public class Usuario implements Serializable {
     private String nome;
     private String email;
     private String senha;
     private TipoUsuario tipo;
 
+    // Construtor
     public Usuario(String nome, String email, String senha, TipoUsuario tipo) {
         this.nome = nome;
         this.email = email;
@@ -14,6 +16,7 @@ public class Usuario {
         this.tipo = tipo;
     }
 
+    // Getters e Setters
     public String getNome() {
         return nome;
     }

@@ -39,21 +39,17 @@ public class RegisterController {
             return;
         }
 
-        // Carregar a lista de usuários existente do arquivo
         List<Usuario> usuarios = dataService.loadUsuarios();
 
-        // Verificar se o e-mail já existe
         boolean emailExists = usuarios.stream().anyMatch(u -> u.getEmail().equals(email));
         if (emailExists) {
             new Alert(Alert.AlertType.ERROR, "Este e-mail já está cadastrado!").showAndWait();
             return;
         }
 
-        // Criar o novo usuário e adicionar à lista
         Usuario novoUsuario = new Usuario(nome, email, senha, TipoUsuario.CLIENTE);
         usuarios.add(novoUsuario);
 
-        // Salvar a lista atualizada de usuários no arquivo
         dataService.saveUsuarios(usuarios);
 
         new Alert(Alert.AlertType.INFORMATION, "Cadastro realizado com sucesso!").showAndWait();

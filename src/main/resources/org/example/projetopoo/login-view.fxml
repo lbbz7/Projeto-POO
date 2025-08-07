@@ -6,28 +6,29 @@
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
+<?import java.net.URL?>
 
-<AnchorPane prefHeight="350.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.projetopoo.controllers.LoginController">
+<VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.projetopoo.controllers.LoginController">
+    <stylesheets>
+        <URL value="@/styles/style.css" />
+    </stylesheets>
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
     <children>
-        <VBox alignment="CENTER" layoutX="50.0" layoutY="50.0" prefHeight="250.0" prefWidth="300.0" spacing="20.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0">
-            <padding>
-                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-            </padding>
+        <Label styleClass="label-title" text="Login">
+            <font>
+                <Font name="System Bold" size="24.0" />
+            </font>
+        </Label>
+        <VBox spacing="10.0" prefWidth="300.0">
             <children>
-                <Label text="Login">
-                    <font>
-                        <Font name="System Bold" size="24.0" />
-                    </font>
-                </Label>
-                <Label text="Email:" />
-                <TextField fx:id="emailField" promptText="Digite seu email" />
-                <Label text="Senha:" />
-                <PasswordField fx:id="senhaField" promptText="Digite sua senha" />
-                <Button fx:id="loginButton" mnemonicParsing="false" onAction="#handleLoginButtonAction" prefWidth="150.0" text="Entrar" />
-                <Button fx:id="registerButton" mnemonicParsing="false" onAction="#handleRegisterButtonAction" prefWidth="150.0" text="Cadastrar" />
+                <TextField fx:id="emailField" promptText="E-mail" />
+                <PasswordField fx:id="senhaField" promptText="Senha" />
             </children>
         </VBox>
+        <Button onAction="#handleLoginButtonAction" styleClass="button-primary" text="Entrar" />
+        <Button onAction="#handleRegisterButtonAction" text="Cadastrar" />
     </children>
-</AnchorPane>
+</VBox>

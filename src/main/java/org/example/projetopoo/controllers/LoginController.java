@@ -31,7 +31,6 @@ public class LoginController {
         String email = emailField.getText();
         String senha = senhaField.getText();
 
-        // Carregar a lista de usuários do arquivo
         List<Usuario> usuarios = dataService.loadUsuarios();
 
         Optional<Usuario> usuarioEncontrado = usuarios.stream()

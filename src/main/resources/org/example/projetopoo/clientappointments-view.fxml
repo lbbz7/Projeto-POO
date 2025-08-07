@@ -5,26 +5,32 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import java.net.URL?>
 
 <VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.projetopoo.controllers.ClientAppointmentsController">
+    <stylesheets>
+        <URL value="@/styles/style.css" />
+    </stylesheets>
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
     </padding>
     <children>
-        <Label text="Meus Agendamentos">
+        <Label fx:id="titleLabel" styleClass="label-title" text="Meus Agendamentos">
             <font>
                 <Font name="System Bold" size="24.0" />
             </font>
         </Label>
-        <TableView fx:id="agendamentosTable" prefHeight="250.0" prefWidth="600.0">
+        <TableView fx:id="appointmentsTable" prefHeight="400.0" prefWidth="800.0">
             <columns>
-                <TableColumn fx:id="servicoColumn" prefWidth="250.0" text="Serviço" />
-                <TableColumn fx:id="dataHoraColumn" prefWidth="150.0" text="Data e Hora" />
+                <TableColumn fx:id="serviceColumn" prefWidth="200.0" text="Serviço" />
+                <TableColumn fx:id="dateTimeColumn" prefWidth="200.0" text="Data e Hora" />
                 <TableColumn fx:id="statusColumn" prefWidth="150.0" text="Status" />
+                <TableColumn fx:id="actionColumn" prefWidth="150.0" text="Ação" />
             </columns>
         </TableView>
-        <Button fx:id="backButton" mnemonicParsing="false" onAction="#handleBackButtonAction" text="Voltar para a Dashboard" />
+        <Button onAction="#handleBackButton" text="Voltar" />
     </children>
 </VBox>
