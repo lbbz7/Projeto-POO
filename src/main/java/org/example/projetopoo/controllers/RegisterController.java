@@ -8,16 +8,13 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import org.example.projetopoo.model.Usuario;
+import org.example.projetopoo.data.DataService;
 import org.example.projetopoo.model.TipoUsuario;
+import org.example.projetopoo.model.Usuario;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class RegisterController {
-
-    // Lista estática para simular um "banco de dados" de usuários.
-    private static List<Usuario> usuarios = new ArrayList<>();
 
     @FXML
     private TextField nomeField;
@@ -27,6 +24,15 @@ public class RegisterController {
 
     @FXML
     private PasswordField senhaField;
+
+    private DataService dataService = new DataService();
+    private List<Usuario> usuarios;
+
+    @FXML
+    public void initialize() {
+        // Carrega os usuários salvos do arquivo ao inicializar o controlador
+        this.usuarios = dataService.loadUsuarios();
+    }
 
     @FXML
     public void handleRegisterButtonAction() {
@@ -39,11 +45,14 @@ public class RegisterController {
             return;
         }
 
-        // Simula o cadastro
+        // Cria o novo usuário e o adiciona à lista
         Usuario novoUsuario = new Usuario(nome, email, senha, TipoUsuario.CLIENTE);
-        usuarios.add(novoUsuario);
+        this.usuarios.add(novoUsuario);
 
-        System.out.println("Novo usuário cadastrado: " + novoUsuario.getNome());
+        // Salva a lista atualizada de usuários no arquivo
+        dataService.saveUsuarios(this.usuarios);
+
+        System.out.println("Novo usuário cadastrado e salvo: " + novoUsuario.getNome());
         new Alert(Alert.AlertType.INFORMATION, "Cadastro realizado com sucesso!").showAndWait();
 
         handleBackButtonAction(); // Volta para a tela de login
@@ -65,8 +74,9 @@ public class RegisterController {
         }
     }
 
-    // Método para ser usado pelo LoginController, se necessário.
-    public static List<Usuario> getUsuarios() {
-        return usuarios;
+    // Este método agora é público e não estático, pois a lista de usuários
+    // pertence à instância do controlador. Ele é usado pelo LoginController.
+    public List<Usuario> getUsuarios() {
+        return this.usuarios;
     }
 }

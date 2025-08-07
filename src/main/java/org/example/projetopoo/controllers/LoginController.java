@@ -8,6 +8,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import org.example.projetopoo.data.DataService;
 import org.example.projetopoo.model.Usuario;
 import java.io.IOException;
 import java.util.List;
@@ -20,16 +21,25 @@ public class LoginController {
     @FXML
     private PasswordField senhaField;
 
+    // Instância do nosso serviço de dados
+    private DataService dataService = new DataService();
+
+    // Lista de usuários carregada do arquivo
+    private List<Usuario> usuarios;
+
+    @FXML
+    public void initialize() {
+        // Carrega os usuários salvos no arquivo quando o controlador é inicializado
+        this.usuarios = dataService.loadUsuarios();
+    }
+
     @FXML
     public void handleLoginButtonAction() {
         String email = emailField.getText();
         String senha = senhaField.getText();
 
-        // Pega a lista de usuários cadastrados
-        List<Usuario> usuariosCadastrados = RegisterController.getUsuarios();
-
         Usuario usuarioAutenticado = null;
-        for (Usuario usuario : usuariosCadastrados) {
+        for (Usuario usuario : this.usuarios) {
             if (usuario.getEmail().equals(email) && usuario.getSenha().equals(senha)) {
                 usuarioAutenticado = usuario;
                 break;
@@ -39,7 +49,6 @@ public class LoginController {
         if (usuarioAutenticado != null) {
             System.out.println("Login de " + usuarioAutenticado.getNome() + " realizado com sucesso!");
 
-            // Carrega a tela do dashboard correspondente
             if (usuarioAutenticado.getTipo().equals(org.example.projetopoo.model.TipoUsuario.ADMIN)) {
                 loadNextScene("adminDashboard-view.fxml", "Painel do Administrador", usuarioAutenticado);
             } else {
@@ -65,7 +74,6 @@ public class LoginController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/projetopoo/views/" + fxmlFile));
             Parent root = loader.load();
 
-            // Passa o objeto do usuário para o controlador correto
             if (fxmlFile.equals("clientDashboard-view.fxml") && usuario != null) {
                 ClientDashboardController controller = loader.getController();
                 controller.setUsuarioLogado(usuario);

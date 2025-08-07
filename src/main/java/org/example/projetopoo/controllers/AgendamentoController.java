@@ -5,6 +5,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import org.example.projetopoo.data.DataService;
 import org.example.projetopoo.model.Agendamento;
 import org.example.projetopoo.model.Servico;
 import org.example.projetopoo.model.StatusAgendamento;
@@ -33,36 +34,48 @@ public class AgendamentoController {
     @FXML
     private Button confirmarButton;
 
+    private DataService dataService = new DataService();
+    private List<Agendamento> agendamentos;
+
     public void initData(Usuario usuario, Servico servico) {
         this.usuarioLogado = usuario;
         this.servicoSelecionado = servico;
         servicoLabel.setText("Agendando: " + servico.getNome());
 
-        // Inicializa o DatePicker para a data atual
         dataPicker.setValue(LocalDate.now());
 
-        // Adiciona um listener para atualizar a lista de horários quando a data mudar
         dataPicker.valueProperty().addListener((observable, oldValue, newValue) -> loadAvailableHours(newValue));
 
-        // Carrega os horários iniciais para a data atual
+        // Carrega os agendamentos do arquivo
+        this.agendamentos = dataService.loadAgendamentos(dataService.loadUsuarios(), loadServicos());
+
         loadAvailableHours(LocalDate.now());
 
-        // Desabilita o botão de confirmação até que um horário seja selecionado
         confirmarButton.setDisable(true);
         horariosListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             confirmarButton.setDisable(newVal == null);
         });
     }
 
+    private List<Servico> loadServicos() {
+        // Simulação dos serviços disponíveis
+        List<Servico> servicos = new ArrayList<>();
+        servicos.add(new Servico(1, "Instalação de Ar-Condicionado", "Instalação profissional para todos os tipos de aparelhos.", 350.00));
+        servicos.add(new Servico(2, "Manutenção Preventiva", "Limpeza e verificação completa para o bom funcionamento do seu equipamento.", 150.00));
+        servicos.add(new Servico(3, "Conserto de Vazamentos", "Identificação e reparo de vazamentos em sistemas de refrigeração.", 200.00));
+        return servicos;
+    }
+
     private void loadAvailableHours(LocalDate date) {
-        // Simulação de horários disponíveis. Em um projeto real, essa lógica seria mais robusta
-        // e se comunicaria com a lógica de calendário do administrador.
         List<LocalTime> availableHours = new ArrayList<>();
-        if (date.isAfter(LocalDate.now().minusDays(1))) { // Não mostra horários para datas passadas
+        if (date.isAfter(LocalDate.now().minusDays(1))) {
             availableHours.add(LocalTime.of(9, 0));
             availableHours.add(LocalTime.of(10, 30));
             availableHours.add(LocalTime.of(14, 0));
         }
+
+        // Simulação de horários ocupados. Em um projeto real, você filtraria os horários
+        // que já estão na lista de agendamentos para a data selecionada.
 
         ObservableList<LocalTime> horarios = FXCollections.observableArrayList(availableHours);
         horariosListView.setItems(horarios);
@@ -74,10 +87,7 @@ public class AgendamentoController {
         if (horarioSelecionado != null) {
             LocalDateTime dataHoraAgendamento = LocalDateTime.of(dataPicker.getValue(), horarioSelecionado);
 
-            // TODO: A lógica para salvar o agendamento no banco de dados viria aqui.
-            // Por enquanto, vamos apenas criar o objeto e exibir a informação.
             Agendamento novoAgendamento = new Agendamento(
-                    // O ID precisaria ser gerado automaticamente
                     (int) (Math.random() * 1000),
                     usuarioLogado,
                     servicoSelecionado,
@@ -85,19 +95,17 @@ public class AgendamentoController {
                     StatusAgendamento.PENDENTE
             );
 
-            System.out.println("Novo agendamento criado:");
-            System.out.println("Cliente: " + novoAgendamento.getCliente().getNome());
-            System.out.println("Serviço: " + novoAgendamento.getServico().getNome());
-            System.out.println("Data e Hora: " + novoAgendamento.getDataHora());
-            System.out.println("Status: " + novoAgendamento.getStatus());
+            // Adiciona o novo agendamento à lista
+            agendamentos.add(novoAgendamento);
 
-            // Exibe um alerta de sucesso
+            // Salva a lista atualizada de agendamentos no arquivo
+            dataService.saveAgendamentos(agendamentos);
+
+            System.out.println("Novo agendamento criado e salvo: " + novoAgendamento.getCliente().getNome());
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Seu agendamento foi solicitado com sucesso! Aguarde a confirmação do administrador.");
             alert.showAndWait();
 
             // TODO: Voltar para a tela inicial do cliente
-            // Stage stage = (Stage) confirmarButton.getScene().getWindow();
-            // stage.close(); // ou carregar uma nova cena
 
         } else {
             new Alert(Alert.AlertType.WARNING, "Por favor, selecione um horário.").showAndWait();

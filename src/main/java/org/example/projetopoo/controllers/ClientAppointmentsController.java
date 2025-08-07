@@ -10,16 +10,21 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
+import org.example.projetopoo.data.DataService;
 import org.example.projetopoo.model.Agendamento;
+import org.example.projetopoo.model.Servico;
 import org.example.projetopoo.model.StatusAgendamento;
 import org.example.projetopoo.model.Usuario;
-import org.example.projetopoo.model.Servico;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ClientAppointmentsController {
 
     private Usuario usuarioLogado;
+    private DataService dataService = new DataService();
 
     @FXML
     private TableView<Agendamento> agendamentosTable;
@@ -44,16 +49,23 @@ public class ClientAppointmentsController {
     }
 
     private void loadClientAgendamentos() {
-        // Simulação de agendamentos. Em um projeto real, você buscaria por ID do usuário.
-        ObservableList<Agendamento> agendamentosDoCliente = FXCollections.observableArrayList(
-                new Agendamento(1, usuarioLogado,
-                        new Servico(1, "Manutenção Preventiva", "", 150.00),
-                        LocalDateTime.of(2025, 8, 15, 10, 0), StatusAgendamento.PENDENTE),
-                new Agendamento(2, usuarioLogado,
-                        new Servico(2, "Instalação de Ar-Condicionado", "", 350.00),
-                        LocalDateTime.of(2025, 8, 20, 14, 30), StatusAgendamento.CONFIRMADO)
-        );
-        agendamentosTable.setItems(agendamentosDoCliente);
+        // TODO: A lista de serviços precisa ser carregada de forma persistente
+        List<Servico> servicosDisponiveis = new ArrayList<>();
+        servicosDisponiveis.add(new Servico(1, "Instalação de Ar-Condicionado", "", 350.00));
+        servicosDisponiveis.add(new Servico(2, "Manutenção Preventiva", "", 150.00));
+        servicosDisponiveis.add(new Servico(3, "Conserto de Vazamentos", "", 200.00));
+
+        // Carrega todos os agendamentos do arquivo
+        List<Usuario> usuariosCadastrados = dataService.loadUsuarios();
+        List<Agendamento> allAgendamentos = dataService.loadAgendamentos(usuariosCadastrados, servicosDisponiveis);
+
+        // Filtra os agendamentos para mostrar apenas os do usuário logado
+        List<Agendamento> agendamentosDoCliente = allAgendamentos.stream()
+                .filter(a -> a.getCliente().getEmail().equals(usuarioLogado.getEmail()))
+                .collect(Collectors.toList());
+
+        ObservableList<Agendamento> agendamentos = FXCollections.observableArrayList(agendamentosDoCliente);
+        agendamentosTable.setItems(agendamentos);
     }
 
     @FXML
