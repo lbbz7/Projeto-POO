@@ -8,8 +8,9 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-
+import org.example.projetopoo.model.Usuario;
 import java.io.IOException;
+import java.util.List;
 
 public class LoginController {
 
@@ -24,15 +25,28 @@ public class LoginController {
         String email = emailField.getText();
         String senha = senhaField.getText();
 
-        // Lógica de login simulada
-        if ("admin@empresa.com".equals(email) && "12345".equals(senha)) {
-            System.out.println("Login do Administrador realizado com sucesso!");
-            loadNextScene("AdminDashboard.fxml", "Painel do Administrador");
-        } else if ("cliente@email.com".equals(email) && "123".equals(senha)) {
-            System.out.println("Login do Cliente realizado com sucesso!");
-            loadNextScene("ClientDashboard.fxml", "Painel do Cliente");
+        // Pega a lista de usuários cadastrados
+        List<Usuario> usuariosCadastrados = RegisterController.getUsuarios();
+
+        Usuario usuarioAutenticado = null;
+        for (Usuario usuario : usuariosCadastrados) {
+            if (usuario.getEmail().equals(email) && usuario.getSenha().equals(senha)) {
+                usuarioAutenticado = usuario;
+                break;
+            }
+        }
+
+        if (usuarioAutenticado != null) {
+            System.out.println("Login de " + usuarioAutenticado.getNome() + " realizado com sucesso!");
+
+            // Carrega a tela do dashboard correspondente
+            if (usuarioAutenticado.getTipo().equals(org.example.projetopoo.model.TipoUsuario.ADMIN)) {
+                loadNextScene("adminDashboard-view.fxml", "Painel do Administrador", usuarioAutenticado);
+            } else {
+                loadNextScene("clientDashboard-view.fxml", "Painel do Cliente", usuarioAutenticado);
+            }
+
         } else {
-            // Exibe um alerta de erro
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Erro de Login");
             alert.setHeaderText(null);
@@ -43,13 +57,22 @@ public class LoginController {
 
     @FXML
     public void handleRegisterButtonAction() {
-        loadNextScene("Register.fxml", "Cadastro de Usuário");
+        loadNextScene("register-view.fxml", "Cadastro de Usuário", null);
     }
 
-    private void loadNextScene(String fxmlFile, String title) {
+    private void loadNextScene(String fxmlFile, String title, Usuario usuario) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/projetopoo/views/" + fxmlFile));
             Parent root = loader.load();
+
+            // Passa o objeto do usuário para o controlador correto
+            if (fxmlFile.equals("clientDashboard-view.fxml") && usuario != null) {
+                ClientDashboardController controller = loader.getController();
+                controller.setUsuarioLogado(usuario);
+            } else if (fxmlFile.equals("adminDashboard-view.fxml") && usuario != null) {
+                AdminDashboardController controller = loader.getController();
+                controller.setUsuarioLogado(usuario);
+            }
 
             Stage stage = (Stage) emailField.getScene().getWindow();
             Scene scene = new Scene(root);

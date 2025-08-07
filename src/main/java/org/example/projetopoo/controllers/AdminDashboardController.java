@@ -35,6 +35,8 @@ public class AdminDashboardController {
     // Lista estática para simular um banco de dados
     private ObservableList<Agendamento> agendamentos = FXCollections.observableArrayList();
 
+    private Usuario usuarioLogado;
+
     @FXML
     public void initialize() {
         clienteColumn.setCellValueFactory(new PropertyValueFactory<>("cliente"));
@@ -100,5 +102,10 @@ public class AdminDashboardController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    public void setUsuarioLogado(Usuario usuario) {
+        this.usuarioLogado = usuario;
+        System.out.println("Administrador Logado: " + usuario.getNome());
     }
 }
