@@ -55,7 +55,7 @@ public class ClientAppointmentsController {
         servicosDisponiveis.add(new Servico(2, "Manutenção Preventiva", "", 150.00));
         servicosDisponiveis.add(new Servico(3, "Conserto de Vazamentos", "", 200.00));
 
-        // Carrega todos os agendamentos do arquivo
+        // Carrega todos os agendamentos do arquivo, garantindo que o status esteja atualizado
         List<Usuario> usuariosCadastrados = dataService.loadUsuarios();
         List<Agendamento> allAgendamentos = dataService.loadAgendamentos(usuariosCadastrados, servicosDisponiveis);
 

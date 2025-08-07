@@ -7,7 +7,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.Button;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import org.example.projetopoo.data.DataService;
 import org.example.projetopoo.model.Agendamento;
@@ -16,7 +19,6 @@ import org.example.projetopoo.model.Usuario;
 import org.example.projetopoo.model.Servico;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 public class AdminDashboardController {
@@ -43,6 +45,12 @@ public class AdminDashboardController {
     private TableColumn<Agendamento, StatusAgendamento> statusColumn;
 
     @FXML
+    private TableColumn<Agendamento, Void> actionColumn;
+
+    @FXML
+    private Button manageServicesButton;
+
+    @FXML
     public void initialize() {
         // Vincula as colunas da tabela aos atributos da classe Agendamento
         clienteColumn.setCellValueFactory(new PropertyValueFactory<>("cliente"));
@@ -50,7 +58,40 @@ public class AdminDashboardController {
         dataHoraColumn.setCellValueFactory(new PropertyValueFactory<>("dataHora"));
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
 
-        // Carrega os agendamentos do arquivo
+        // Configuração da nova coluna de Ações
+        actionColumn.setCellFactory(param -> new TableCell<Agendamento, Void>() {
+            private final Button confirmButton = new Button("Confirmar");
+            private final Button cancelButton = new Button("Cancelar");
+            private final HBox pane = new HBox(5, confirmButton, cancelButton);
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    Agendamento agendamento = getTableView().getItems().get(getIndex());
+
+                    confirmButton.setDisable(agendamento.getStatus() != StatusAgendamento.PENDENTE);
+                    cancelButton.setDisable(agendamento.getStatus() != StatusAgendamento.PENDENTE);
+
+                    confirmButton.setOnAction(event -> {
+                        agendamento.setStatus(StatusAgendamento.CONFIRMADO);
+                        updateAndSaveAgendamentos();
+                        getTableView().refresh();
+                    });
+
+                    cancelButton.setOnAction(event -> {
+                        agendamento.setStatus(StatusAgendamento.CANCELADO);
+                        updateAndSaveAgendamentos();
+                        getTableView().refresh();
+                    });
+
+                    setGraphic(pane);
+                }
+            }
+        });
+
         loadAgendamentos();
     }
 
@@ -62,16 +103,34 @@ public class AdminDashboardController {
     }
 
     private void loadAgendamentos() {
-        // TODO: A lista de serviços precisa ser carregada de forma persistente
-        // Por enquanto, usaremos uma lista estática de serviços para carregar os agendamentos
-        List<Servico> servicosDisponiveis = new ArrayList<>();
-        servicosDisponiveis.add(new Servico(1, "Instalação de Ar-Condicionado", "", 350.00));
-        servicosDisponiveis.add(new Servico(2, "Manutenção Preventiva", "", 150.00));
-        servicosDisponiveis.add(new Servico(3, "Conserto de Vazamentos", "", 200.00));
-
+        // Agora carrega os serviços de forma persistente
+        List<Servico> servicosDisponiveis = dataService.loadServicos();
         List<Usuario> usuariosCadastrados = dataService.loadUsuarios();
         List<Agendamento> agendamentos = dataService.loadAgendamentos(usuariosCadastrados, servicosDisponiveis);
 
         agendamentosTable.getItems().setAll(agendamentos);
+    }
+
+    private void updateAndSaveAgendamentos() {
+        dataService.saveAgendamentos(agendamentosTable.getItems());
+    }
+
+    @FXML
+    private void handleManageServicesButton() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/projetopoo/adminServices-view.fxml"));
+            Parent root = loader.load();
+
+            AdminServicesController controller = loader.getController();
+            controller.setUsuarioLogado(usuarioLogado);
+
+            Stage stage = (Stage) welcomeLabel.getScene().getWindow();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Gerenciar Serviços");
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

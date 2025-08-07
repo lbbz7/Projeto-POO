@@ -11,10 +11,13 @@ import javafx.stage.Stage;
 import org.example.projetopoo.data.DataService;
 import org.example.projetopoo.model.TipoUsuario;
 import org.example.projetopoo.model.Usuario;
+
 import java.io.IOException;
 import java.util.List;
 
 public class RegisterController {
+
+    private DataService dataService = new DataService();
 
     @FXML
     private TextField nomeField;
@@ -25,15 +28,6 @@ public class RegisterController {
     @FXML
     private PasswordField senhaField;
 
-    private DataService dataService = new DataService();
-    private List<Usuario> usuarios;
-
-    @FXML
-    public void initialize() {
-        // Carrega os usuários salvos do arquivo ao inicializar o controlador
-        this.usuarios = dataService.loadUsuarios();
-    }
-
     @FXML
     public void handleRegisterButtonAction() {
         String nome = nomeField.getText();
@@ -41,29 +35,35 @@ public class RegisterController {
         String senha = senhaField.getText();
 
         if (nome.isEmpty() || email.isEmpty() || senha.isEmpty()) {
-            new Alert(Alert.AlertType.ERROR, "Todos os campos devem ser preenchidos.").showAndWait();
+            new Alert(Alert.AlertType.ERROR, "Todos os campos são obrigatórios!").showAndWait();
             return;
         }
 
-        // Cria o novo usuário e o adiciona à lista
+        // Carregar a lista de usuários existente do arquivo
+        List<Usuario> usuarios = dataService.loadUsuarios();
+
+        // Verificar se o e-mail já existe
+        boolean emailExists = usuarios.stream().anyMatch(u -> u.getEmail().equals(email));
+        if (emailExists) {
+            new Alert(Alert.AlertType.ERROR, "Este e-mail já está cadastrado!").showAndWait();
+            return;
+        }
+
+        // Criar o novo usuário e adicionar à lista
         Usuario novoUsuario = new Usuario(nome, email, senha, TipoUsuario.CLIENTE);
-        this.usuarios.add(novoUsuario);
+        usuarios.add(novoUsuario);
 
-        // Salva a lista atualizada de usuários no arquivo
-        dataService.saveUsuarios(this.usuarios);
+        // Salvar a lista atualizada de usuários no arquivo
+        dataService.saveUsuarios(usuarios);
 
-        System.out.println("Novo usuário cadastrado e salvo: " + novoUsuario.getNome());
         new Alert(Alert.AlertType.INFORMATION, "Cadastro realizado com sucesso!").showAndWait();
-
-        handleBackButtonAction(); // Volta para a tela de login
+        handleBackButtonAction();
     }
 
     @FXML
     public void handleBackButtonAction() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/projetopoo/views/login-view.fxml"));
-            Parent root = loader.load();
-
+            Parent root = FXMLLoader.load(getClass().getResource("/org/example/projetopoo/login-view.fxml"));
             Stage stage = (Stage) nomeField.getScene().getWindow();
             Scene scene = new Scene(root);
             stage.setScene(scene);
@@ -72,11 +72,5 @@ public class RegisterController {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    // Este método agora é público e não estático, pois a lista de usuários
-    // pertence à instância do controlador. Ele é usado pelo LoginController.
-    public List<Usuario> getUsuarios() {
-        return this.usuarios;
     }
 }

@@ -9,11 +9,16 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import org.example.projetopoo.data.DataService;
+import org.example.projetopoo.model.TipoUsuario;
 import org.example.projetopoo.model.Usuario;
+
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 public class LoginController {
+
+    private DataService dataService = new DataService();
 
     @FXML
     private TextField emailField;
@@ -21,75 +26,73 @@ public class LoginController {
     @FXML
     private PasswordField senhaField;
 
-    // Instância do nosso serviço de dados
-    private DataService dataService = new DataService();
-
-    // Lista de usuários carregada do arquivo
-    private List<Usuario> usuarios;
-
-    @FXML
-    public void initialize() {
-        // Carrega os usuários salvos no arquivo quando o controlador é inicializado
-        this.usuarios = dataService.loadUsuarios();
-    }
-
     @FXML
     public void handleLoginButtonAction() {
         String email = emailField.getText();
         String senha = senhaField.getText();
 
-        Usuario usuarioAutenticado = null;
-        for (Usuario usuario : this.usuarios) {
-            if (usuario.getEmail().equals(email) && usuario.getSenha().equals(senha)) {
-                usuarioAutenticado = usuario;
-                break;
-            }
-        }
+        // Carregar a lista de usuários do arquivo
+        List<Usuario> usuarios = dataService.loadUsuarios();
 
-        if (usuarioAutenticado != null) {
-            System.out.println("Login de " + usuarioAutenticado.getNome() + " realizado com sucesso!");
+        Optional<Usuario> usuarioEncontrado = usuarios.stream()
+                .filter(u -> u.getEmail().equals(email) && u.getSenha().equals(senha))
+                .findFirst();
 
-            if (usuarioAutenticado.getTipo().equals(org.example.projetopoo.model.TipoUsuario.ADMIN)) {
-                loadNextScene("adminDashboard-view.fxml", "Painel do Administrador", usuarioAutenticado);
+        if (usuarioEncontrado.isPresent()) {
+            Usuario usuarioLogado = usuarioEncontrado.get();
+            if (usuarioLogado.getTipo() == TipoUsuario.ADMIN) {
+                navigateToAdminDashboard(usuarioLogado);
             } else {
-                loadNextScene("clientDashboard-view.fxml", "Painel do Cliente", usuarioAutenticado);
+                navigateToClientDashboard(usuarioLogado);
             }
-
         } else {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Erro de Login");
-            alert.setHeaderText(null);
-            alert.setContentText("Email ou senha incorretos. Por favor, tente novamente.");
-            alert.showAndWait();
+            new Alert(Alert.AlertType.ERROR, "E-mail ou senha incorretos.").showAndWait();
+        }
+    }
+
+    private void navigateToAdminDashboard(Usuario usuario) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/projetopoo/adminDashboard-view.fxml"));
+            Parent root = loader.load();
+            AdminDashboardController controller = loader.getController();
+            controller.setUsuarioLogado(usuario);
+            Stage stage = (Stage) emailField.getScene().getWindow();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Painel do Administrador");
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void navigateToClientDashboard(Usuario usuario) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/projetopoo/clientDashboard-view.fxml"));
+            Parent root = loader.load();
+            ClientDashboardController controller = loader.getController();
+            controller.setUsuarioLogado(usuario);
+            Stage stage = (Stage) emailField.getScene().getWindow();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.setTitle("Painel do Cliente");
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     @FXML
     public void handleRegisterButtonAction() {
-        loadNextScene("register-view.fxml", "Cadastro de Usuário", null);
-    }
-
-    private void loadNextScene(String fxmlFile, String title, Usuario usuario) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/projetopoo/views/" + fxmlFile));
-            Parent root = loader.load();
-
-            if (fxmlFile.equals("clientDashboard-view.fxml") && usuario != null) {
-                ClientDashboardController controller = loader.getController();
-                controller.setUsuarioLogado(usuario);
-            } else if (fxmlFile.equals("adminDashboard-view.fxml") && usuario != null) {
-                AdminDashboardController controller = loader.getController();
-                controller.setUsuarioLogado(usuario);
-            }
-
+            Parent root = FXMLLoader.load(getClass().getResource("/org/example/projetopoo/register-view.fxml"));
             Stage stage = (Stage) emailField.getScene().getWindow();
             Scene scene = new Scene(root);
             stage.setScene(scene);
-            stage.setTitle(title);
+            stage.setTitle("Cadastro");
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Erro ao carregar a tela: " + fxmlFile);
         }
     }
 }
