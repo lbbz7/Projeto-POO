@@ -23,16 +23,17 @@ public class DataService {
     private static final String USUARIOS_FILE = "usuarios.txt";
     private static final String SERVICOS_FILE = "servicos.txt";
     private static final String AGENDAMENTOS_FILE = "agendamentos.txt";
+    private static final String DELIMITADOR = "|";
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     // Métodos para persistência de Usuários
     public void saveUsuarios(List<Usuario> usuarios) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(USUARIOS_FILE))) {
             for (Usuario usuario : usuarios) {
-                writer.printf("%s,%s,%s,%s\n",
-                        usuario.getNome(),
-                        usuario.getEmail(),
-                        usuario.getSenha(),
+                writer.printf("%s%s%s%s%s%s%s\n",
+                        usuario.getNome(), DELIMITADOR,
+                        usuario.getEmail(), DELIMITADOR,
+                        usuario.getSenha(), DELIMITADOR,
                         usuario.getTipo());
             }
         } catch (IOException e) {
@@ -45,7 +46,7 @@ public class DataService {
         try (Scanner scanner = new Scanner(new File(USUARIOS_FILE))) {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
-                String[] parts = line.split(",");
+                String[] parts = line.split("\\" + DELIMITADOR);
                 if (parts.length == 4) {
                     usuarios.add(new Usuario(
                             parts[0],
@@ -56,7 +57,6 @@ public class DataService {
             }
         } catch (FileNotFoundException e) {
             System.out.println("Arquivo de usuários não encontrado. Criando um novo...");
-            // Criar um usuário admin padrão se o arquivo não existir
             Usuario admin = new Usuario("Admin", "admin@email.com", "123", TipoUsuario.ADMIN);
             usuarios.add(admin);
             saveUsuarios(usuarios);
@@ -68,10 +68,10 @@ public class DataService {
     public void saveServicos(List<Servico> servicos) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(SERVICOS_FILE))) {
             for (Servico servico : servicos) {
-                writer.printf("%d,%s,%s,%.2f\n",
-                        servico.getId(),
-                        servico.getNome(),
-                        servico.getDescricao().replace(",", ";"), // Substitui vírgula por ponto e vírgula
+                writer.printf("%d%s%s%s%s%s%.2f\n",
+                        servico.getId(), DELIMITADOR,
+                        servico.getNome(), DELIMITADOR,
+                        servico.getDescricao(), DELIMITADOR,
                         servico.getPreco());
             }
         } catch (IOException e) {
@@ -84,14 +84,16 @@ public class DataService {
         try (Scanner scanner = new Scanner(new File(SERVICOS_FILE))) {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
-                String[] parts = line.split(",");
+                String[] parts = line.split("\\" + DELIMITADOR);
                 if (parts.length == 4) {
                     try {
+                        // CORREÇÃO: Substitui a vírgula por ponto para o parse Double
+                        String precoStr = parts[3].replace(',', '.');
                         servicos.add(new Servico(
                                 Integer.parseInt(parts[0]),
                                 parts[1],
-                                parts[2].replace(";", ","), // Reverte a substituição
-                                Double.parseDouble(parts[3])));
+                                parts[2],
+                                Double.parseDouble(precoStr)));
                     } catch (NumberFormatException e) {
                         System.err.println("Erro ao converter dados do serviço: " + e.getMessage());
                     }
@@ -110,11 +112,11 @@ public class DataService {
     public void saveAgendamentos(List<Agendamento> agendamentos) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(AGENDAMENTOS_FILE))) {
             for (Agendamento agendamento : agendamentos) {
-                writer.printf("%d,%s,%d,%s,%s\n",
-                        agendamento.getId(),
-                        agendamento.getCliente().getEmail(),
-                        agendamento.getServico().getId(),
-                        agendamento.getDataHora().format(DATE_TIME_FORMATTER),
+                writer.printf("%d%s%s%s%d%s%s%s%s\n",
+                        agendamento.getId(), DELIMITADOR,
+                        agendamento.getCliente().getEmail(), DELIMITADOR,
+                        agendamento.getServico().getId(), DELIMITADOR,
+                        agendamento.getDataHora().format(DATE_TIME_FORMATTER), DELIMITADOR,
                         agendamento.getStatus());
             }
         } catch (IOException e) {
@@ -127,7 +129,7 @@ public class DataService {
         try (Scanner scanner = new Scanner(new File(AGENDAMENTOS_FILE))) {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
-                String[] parts = line.split(",");
+                String[] parts = line.split("\\" + DELIMITADOR);
                 if (parts.length == 5) {
                     try {
                         int id = Integer.parseInt(parts[0]);

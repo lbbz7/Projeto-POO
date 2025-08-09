@@ -8,12 +8,9 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<?import java.net.URL?>
+
 
 <VBox alignment="CENTER" spacing="20.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.projetopoo.controllers.ClientAppointmentsController">
-    <stylesheets>
-        <URL value="@/styles/style.css" />
-    </stylesheets>
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
     </padding>
@@ -31,6 +28,6 @@
                 <TableColumn fx:id="actionColumn" prefWidth="150.0" text="Ação" />
             </columns>
         </TableView>
-        <Button onAction="#handleBackButton" text="Voltar" />
+        <Button onAction="#handleBackButtonAction" text="Voltar" />
     </children>
 </VBox>

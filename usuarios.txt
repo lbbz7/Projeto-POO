@@ -1,0 +1,2 @@
+Admin|admin@email.com|123|ADMIN
+lucas|lucas@email.com|123|CLIENTE

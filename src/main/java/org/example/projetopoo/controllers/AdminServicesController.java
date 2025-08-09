@@ -5,7 +5,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 import org.example.projetopoo.data.DataService;
 import org.example.projetopoo.model.Servico;
@@ -52,12 +51,12 @@ public class AdminServicesController {
 
     @FXML
     public void initialize() {
-        nomeColumn.setCellValueFactory(new PropertyValueFactory<>("nome"));
-        descricaoColumn.setCellValueFactory(new PropertyValueFactory<>("descricao"));
-        precoColumn.setCellValueFactory(new PropertyValueFactory<>("preco"));
+        // Vincula as colunas às propriedades da classe Servico
+        nomeColumn.setCellValueFactory(cellData -> cellData.getValue().nomeProperty());
+        descricaoColumn.setCellValueFactory(cellData -> cellData.getValue().descricaoProperty());
+        precoColumn.setCellValueFactory(cellData -> cellData.getValue().precoProperty().asObject());
 
-        loadServices();
-
+        // Listener para preencher os campos quando um serviço é selecionado
         servicesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 nomeField.setText(newVal.getNome());
@@ -67,6 +66,8 @@ public class AdminServicesController {
                 clearFields();
             }
         });
+
+        loadServices();
     }
 
     public void setUsuarioLogado(Usuario usuario) {
@@ -85,7 +86,6 @@ public class AdminServicesController {
             String descricao = descricaoField.getText();
             double preco = Double.parseDouble(precoField.getText());
 
-            // Gerar um novo ID simples (o maior ID atual + 1)
             int newId = servicos.isEmpty() ? 1 : servicos.get(servicos.size() - 1).getId() + 1;
 
             Servico newServico = new Servico(newId, nome, descricao, preco);
